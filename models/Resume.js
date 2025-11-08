@@ -61,6 +61,10 @@ const ResumeSchema = new mongoose.Schema({
             description: { type: String },
         }
     ],
+    signature: {
+        image: { type: String, default: '' },
+        date: { type: String, default: '' },
+    },
 }, {timestamps: true, minimize: false})
 
 const Resume = mongoose.model('Resume', ResumeSchema)

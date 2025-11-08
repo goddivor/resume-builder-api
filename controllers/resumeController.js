@@ -84,24 +84,24 @@ export const getPublicResumeById = async (req, res) => {
 export const updateResume = async (req, res) =>{
     try {
         const userId = req.userId;
-        const {resumeId, resumeData, removeBackground} = req.body
-        const image = req.file;
-        
-        let resumeDataCopy; 
+        const {resumeId, resumeData, removeBackground, removeSignatureBackground} = req.body
+        const files = req.files;
+
+        let resumeDataCopy;
         if(typeof resumeData === 'string'){
             resumeDataCopy = await JSON.parse(resumeData)
         }else{
             resumeDataCopy = structuredClone(resumeData)
         }
 
-        if(image){
-            
+        if(files?.image && files.image[0]){
+            const image = files.image[0];
 
             const imageBufferData = fs.createReadStream(image.path)
 
             const response = await imagekit.files.upload({
                             file: imageBufferData,
-                            fileName: 'resume.png',
+                            fileName: 'profile.png',
                             folder: 'user-resumes',
                              transformation: {
                                 pre: 'w-300,h-300,fo-face,z-0.75' + (removeBackground ? ',e-bgremove' : '')
@@ -109,6 +109,26 @@ export const updateResume = async (req, res) =>{
                             });
 
             resumeDataCopy.personal_info.image = response.url
+        }
+
+        if(files?.signature && files.signature[0]){
+            const signature = files.signature[0];
+
+            const signatureBufferData = fs.createReadStream(signature.path)
+
+            const response = await imagekit.files.upload({
+                            file: signatureBufferData,
+                            fileName: 'signature.png',
+                            folder: 'user-resumes',
+                             transformation: {
+                                pre: 'w-400,h-200' + (removeSignatureBackground ? ',e-bgremove' : '')
+                             }
+                            });
+
+            if(!resumeDataCopy.signature){
+                resumeDataCopy.signature = {}
+            }
+            resumeDataCopy.signature.image = response.url
         }
 
        const resume = await Resume.findByIdAndUpdate({userId, _id: resumeId}, resumeDataCopy, {new: true})
