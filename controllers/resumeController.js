@@ -1,5 +1,6 @@
 import imagekit from "../configs/imageKit.js";
 import Resume from "../models/Resume.js";
+import Annexe from "../models/Annexe.js";
 import fs from 'fs';
 
 
@@ -138,3 +139,64 @@ export const updateResume = async (req, res) =>{
         return res.status(400).json({message: error.message})
     }
 }
+
+// controller for assigning annexes to a resume
+// PUT: /api/resumes/:resumeId/annexes
+export const assignAnnexesToResume = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { resumeId } = req.params;
+        const { annexes } = req.body; // [{annexeId, order}, ...]
+
+        // Validate that the resume belongs to the user
+        const resume = await Resume.findOne({ userId, _id: resumeId });
+        if (!resume) {
+            return res.status(404).json({ message: 'Resume not found' });
+        }
+
+        // Validate that all annexes belong to the user
+        if (annexes && annexes.length > 0) {
+            const annexeIds = annexes.map(a => a.annexeId);
+            const userAnnexes = await Annexe.find({ userId, _id: { $in: annexeIds } });
+
+            if (userAnnexes.length !== annexeIds.length) {
+                return res.status(403).json({ message: 'Some annexes do not belong to you' });
+            }
+
+            // Check maximum limit (15 annexes)
+            if (annexes.length > 15) {
+                return res.status(400).json({ message: 'Maximum 15 annexes allowed per resume' });
+            }
+        }
+
+        // Update resume with annexes
+        resume.annexes = annexes || [];
+        await resume.save();
+
+        return res.status(200).json({ message: 'Annexes assigned successfully', resume });
+
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};
+
+// controller for getting resume with populated annexes
+// GET: /api/resumes/:resumeId/with-annexes
+export const getResumeWithAnnexes = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { resumeId } = req.params;
+
+        const resume = await Resume.findOne({ userId, _id: resumeId })
+            .populate('annexes.annexeId');
+
+        if (!resume) {
+            return res.status(404).json({ message: 'Resume not found' });
+        }
+
+        return res.status(200).json({ resume });
+
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};
