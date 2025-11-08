@@ -65,6 +65,12 @@ const ResumeSchema = new mongoose.Schema({
         image: { type: String, default: '' },
         date: { type: String, default: '' },
     },
+    annexes: [
+        {
+            annexeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Annexe' },
+            order: { type: Number }
+        }
+    ]
 }, {timestamps: true, minimize: false})
 
 const Resume = mongoose.model('Resume', ResumeSchema)
