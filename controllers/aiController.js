@@ -150,3 +150,36 @@ export const uploadResume = async (req, res) => {
         return res.status(400).json({message: error.message})
     }
 }
+
+export const translateResume = async (req, res) => {
+    try {
+        const { resumeData, targetLanguage } = req.body;
+
+        if(!resumeData || !targetLanguage){
+            return res.status(400).json({message: 'Missing required fields'})
+        }
+
+        const languageNames = {
+            'en': 'English',
+            'fr': 'French'
+        };
+
+        const systemPrompt = `You are a professional translator. Translate the entire resume data to ${languageNames[targetLanguage]}. Maintain the JSON structure exactly as provided. Translate all text content including personal information, professional summary, experience descriptions, education, skills, projects, and publications. Keep URLs, emails, phone numbers, and dates unchanged.`;
+
+        const userPrompt = `Translate this resume data to ${languageNames[targetLanguage]}:\n\n${JSON.stringify(resumeData)}`;
+
+        const response = await ai.chat.completions.create({
+            model: process.env.OPENAI_MODEL,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+            response_format: {type: 'json_object'}
+        });
+
+        const translatedData = JSON.parse(response.choices[0].message.content);
+        return res.status(200).json({translatedData})
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
+}
