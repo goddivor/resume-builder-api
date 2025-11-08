@@ -1,6 +1,7 @@
 import express from "express";
 import protect from "../middlewares/authMiddleware.js";
-import { createResume, deleteResume, getPublicResumeById, getResumeById, updateResume } from "../controllers/resumeController.js";
+import { createResume, deleteResume, getPublicResumeById, getResumeById, updateResume, assignAnnexesToResume, getResumeWithAnnexes } from "../controllers/resumeController.js";
+import { generateResumePDF } from "../controllers/pdfController.js";
 import upload from "../configs/multer.js";
 
 const resumeRouter = express.Router();
@@ -10,5 +11,13 @@ resumeRouter.put('/update', upload.fields([{ name: 'image', maxCount: 1 }, { nam
 resumeRouter.delete('/delete/:resumeId', protect, deleteResume);
 resumeRouter.get('/get/:resumeId', protect, getResumeById);
 resumeRouter.get('/public/:resumeId', getPublicResumeById);
+resumeRouter.put('/:resumeId/annexes', protect, assignAnnexesToResume);
+resumeRouter.get('/:resumeId/with-annexes', protect, getResumeWithAnnexes);
+resumeRouter.post('/:resumeId/generate-pdf', protect, generateResumePDF);
+
+// Test endpoint
+resumeRouter.get('/test-pdf', (req, res) => {
+    res.json({ message: 'PDF endpoint is working' });
+});
 
 export default resumeRouter
