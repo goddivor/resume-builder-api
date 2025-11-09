@@ -200,3 +200,42 @@ export const getResumeWithAnnexes = async (req, res) => {
         return res.status(400).json({ message: error.message });
     }
 };
+
+// controller for cloning a resume
+// POST: /api/resumes/:resumeId/clone
+export const cloneResume = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { resumeId } = req.params;
+
+        // Find the original resume
+        const originalResume = await Resume.findOne({ userId, _id: resumeId });
+
+        if (!originalResume) {
+            return res.status(404).json({ message: 'Resume not found' });
+        }
+
+        // Create a copy of the resume data
+        const resumeData = originalResume.toObject();
+
+        // Remove fields that should not be copied
+        delete resumeData._id;
+        delete resumeData.createdAt;
+        delete resumeData.updatedAt;
+        delete resumeData.__v;
+
+        // Update title to indicate it's a copy
+        resumeData.title = `Copy of ${resumeData.title}`;
+
+        // Create new resume
+        const clonedResume = await Resume.create(resumeData);
+
+        return res.status(201).json({
+            message: 'Resume cloned successfully',
+            resume: clonedResume
+        });
+
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};

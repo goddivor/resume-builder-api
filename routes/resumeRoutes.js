@@ -1,6 +1,6 @@
 import express from "express";
 import protect from "../middlewares/authMiddleware.js";
-import { createResume, deleteResume, getPublicResumeById, getResumeById, updateResume, assignAnnexesToResume, getResumeWithAnnexes } from "../controllers/resumeController.js";
+import { createResume, deleteResume, getPublicResumeById, getResumeById, updateResume, assignAnnexesToResume, getResumeWithAnnexes, cloneResume } from "../controllers/resumeController.js";
 import { generateResumePDF } from "../controllers/pdfController.js";
 import upload from "../configs/multer.js";
 
@@ -14,6 +14,7 @@ resumeRouter.get('/public/:resumeId', getPublicResumeById);
 resumeRouter.put('/:resumeId/annexes', protect, assignAnnexesToResume);
 resumeRouter.get('/:resumeId/with-annexes', protect, getResumeWithAnnexes);
 resumeRouter.post('/:resumeId/generate-pdf', protect, generateResumePDF);
+resumeRouter.post('/:resumeId/clone', protect, cloneResume);
 
 // Test endpoint
 resumeRouter.get('/test-pdf', (req, res) => {
