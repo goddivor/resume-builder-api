@@ -80,6 +80,25 @@ export const getPublicResumeById = async (req, res) => {
     }
 }
 
+// get public resume by id with annexes
+// GET: /api/resumes/public/:resumeId/with-annexes
+export const getPublicResumeWithAnnexes = async (req, res) => {
+    try {
+        const { resumeId } = req.params;
+        const resume = await Resume.findOne({ public: true, _id: resumeId })
+            .populate('annexes.annexeId');
+
+        if (!resume) {
+            return res.status(404).json({ message: 'Resume not found or not public' });
+        }
+
+        return res.status(200).json({ resume });
+
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+}
+
 // controller for updating a resume
 // PUT: /api/resumes/update
 export const updateResume = async (req, res) =>{
