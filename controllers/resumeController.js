@@ -56,6 +56,11 @@ export const getResumeById = async (req, res) => {
         resume.createdAt = undefined;
         resume.updatedAt = undefined;
 
+        // Ensure languages field exists
+        if(!resume.languages){
+            resume.languages = [];
+        }
+
         return res.status(200).json({resume})
 
     } catch (error) {
@@ -73,6 +78,11 @@ export const getPublicResumeById = async (req, res) => {
         if(!resume){
         return res.status(404).json({message: "Resume not found"})
        }
+
+        // Ensure languages field exists
+        if(!resume.languages){
+            resume.languages = [];
+        }
 
        return res.status(200).json({resume})
     } catch (error) {
@@ -151,7 +161,11 @@ export const updateResume = async (req, res) =>{
             resumeDataCopy.signature.image = response.url
         }
 
-       const resume = await Resume.findByIdAndUpdate({userId, _id: resumeId}, resumeDataCopy, {new: true})
+       const resume = await Resume.findOneAndUpdate(
+           {userId, _id: resumeId},
+           { $set: resumeDataCopy },
+           {new: true, runValidators: true}
+       )
 
        return res.status(200).json({message: 'Saved successfully', resume})
     } catch (error) {
