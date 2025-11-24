@@ -15,6 +15,12 @@ const ResumeSchema = new mongoose.Schema({
     },
     professional_summary: { type: String, default: '' },
     skills: [{ type: String }],
+    languages: [
+        {
+            name: { type: String },
+            proficiency: { type: Number }
+        }
+    ],
     personal_info: {
         image: {type: String, default: '' },
         full_name: {type: String, default: '' },
@@ -49,6 +55,7 @@ const ResumeSchema = new mongoose.Schema({
             field: { type: String },
             graduation_date: { type: String },
             gpa: { type: String },
+            is_current: { type: Boolean, default: false }
         }
     ],
     publication: [
