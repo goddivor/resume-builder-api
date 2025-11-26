@@ -73,12 +73,19 @@ export const uploadResume = async (req, res) => {
         const systemPrompt = "You are an expert AI Agent to extract data from resume."
 
         const userPrompt = `extract data from this resume: ${resumeText}
-        
+
         Provide data in the following JSON format with no additional text before or after:
 
         {
         professional_summary: { type: String, default: '' },
         skills: [{ type: String }],
+        interests: [{ type: String }],
+        languages: [
+            {
+                name: { type: String },
+                proficiency: { type: Number (1-5, where 1 is beginner and 5 is native) }
+            }
+        ],
         personal_info: {
             image: {type: String, default: '' },
             full_name: {type: String, default: '' },

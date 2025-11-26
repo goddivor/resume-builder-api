@@ -15,6 +15,7 @@ const ResumeSchema = new mongoose.Schema({
     },
     professional_summary: { type: String, default: '' },
     skills: [{ type: String }],
+    interests: [{ type: String }],
     languages: [
         {
             name: { type: String },
