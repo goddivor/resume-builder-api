@@ -7,6 +7,7 @@ import resumeRouter from "./routes/resumeRoutes.js";
 import aiRouter from "./routes/aiRoutes.js";
 import annexeRouter from "./routes/annexeRoutes.js";
 import proxyRouter from "./routes/proxyRoutes.js";
+import adminRouter from "./routes/adminRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use('/api/resumes', resumeRouter)
 app.use('/api/ai', aiRouter)
 app.use('/api/annexes', annexeRouter)
 app.use('/api/proxy', proxyRouter)
+app.use('/api/admin', adminRouter)
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on port ${PORT}`);
