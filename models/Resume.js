@@ -3,6 +3,14 @@ import mongoose from "mongoose";
 const ResumeSchema = new mongoose.Schema({
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
     title: {type: String, default: 'Untitled Resume'},
+    slug: {
+        type: String,
+        unique: true,
+        sparse: true,
+        lowercase: true,
+        trim: true,
+        match: /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+    },
     public: { type: Boolean, default: false },
     template: { type: String, default: "classic" },
     accent_color: { type: String, default: "#3B82F6" },

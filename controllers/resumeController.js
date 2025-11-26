@@ -2,6 +2,8 @@ import imagekit from "../configs/imageKit.js";
 import Resume from "../models/Resume.js";
 import Annexe from "../models/Annexe.js";
 import fs from 'fs';
+import mongoose from 'mongoose';
+import { isValidSlug, isSlugUnique } from "../utils/slugGenerator.js";
 
 
 // controller for creating a new resume
@@ -68,35 +70,58 @@ export const getResumeById = async (req, res) => {
     }
 }
 
-// get resume by id public
+// get resume by id or slug public
 // GET: /api/resumes/public
 export const getPublicResumeById = async (req, res) => {
     try {
         const { resumeId } = req.params;
-        const resume = await Resume.findOne({public: true, _id: resumeId})
+
+        // Check if resumeId is a valid MongoDB ObjectId or a slug
+        let resume;
+        if (mongoose.Types.ObjectId.isValid(resumeId)) {
+            // Try to find by ID first
+            resume = await Resume.findOne({public: true, _id: resumeId});
+        }
+
+        // If not found by ID or not a valid ObjectId, try to find by slug
+        if (!resume) {
+            resume = await Resume.findOne({public: true, slug: resumeId});
+        }
 
         if(!resume){
-        return res.status(404).json({message: "Resume not found"})
-       }
+            return res.status(404).json({message: "Resume not found"})
+        }
 
         // Ensure languages field exists
         if(!resume.languages){
             resume.languages = [];
         }
 
-       return res.status(200).json({resume})
+        return res.status(200).json({resume})
     } catch (error) {
          return res.status(400).json({message: error.message})
     }
 }
 
-// get public resume by id with annexes
+// get public resume by id or slug with annexes
 // GET: /api/resumes/public/:resumeId/with-annexes
 export const getPublicResumeWithAnnexes = async (req, res) => {
     try {
         const { resumeId } = req.params;
-        const resume = await Resume.findOne({ public: true, _id: resumeId })
-            .populate('annexes.annexeId');
+
+        // Check if resumeId is a valid MongoDB ObjectId or a slug
+        let resume;
+        if (mongoose.Types.ObjectId.isValid(resumeId)) {
+            // Try to find by ID first
+            resume = await Resume.findOne({ public: true, _id: resumeId })
+                .populate('annexes.annexeId');
+        }
+
+        // If not found by ID or not a valid ObjectId, try to find by slug
+        if (!resume) {
+            resume = await Resume.findOne({ public: true, slug: resumeId })
+                .populate('annexes.annexeId');
+        }
 
         if (!resume) {
             return res.status(404).json({ message: 'Resume not found or not public' });
@@ -122,6 +147,29 @@ export const updateResume = async (req, res) =>{
             resumeDataCopy = await JSON.parse(resumeData)
         }else{
             resumeDataCopy = structuredClone(resumeData)
+        }
+
+        // Validate slug if provided
+        if (resumeDataCopy.slug !== undefined) {
+            // If slug is empty string, set to null to remove it
+            if (resumeDataCopy.slug === '') {
+                resumeDataCopy.slug = null;
+            } else {
+                // Validate slug format
+                if (!isValidSlug(resumeDataCopy.slug)) {
+                    return res.status(400).json({
+                        message: 'Invalid slug format. Use only lowercase letters, numbers, and hyphens.'
+                    });
+                }
+
+                // Check if slug is unique (excluding current resume)
+                const isUnique = await isSlugUnique(resumeDataCopy.slug, resumeId);
+                if (!isUnique) {
+                    return res.status(400).json({
+                        message: 'This slug is already taken. Please choose another one.'
+                    });
+                }
+            }
         }
 
         if(files?.image && files.image[0]){
